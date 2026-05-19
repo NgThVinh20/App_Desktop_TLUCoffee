@@ -1,0 +1,57 @@
+.env
+*.env
+.env.local
+.env.production
+
+# ── Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+.Python
+
+# ── Môi trường ảo
+venv/
+env/
+.venv/
+ENV/
+
+# ── Ảnh món ăn upload (lưu local, không push)
+assets/images/*.jpg
+assets/images/*.jpeg
+assets/images/*.png
+assets/images/*.gif
+assets/images/*.webp
+
+# ── Log & database backup
+*.log
+*.sql.bak
+*.dump
+backups/
+
+# ── PyInstaller build
+build/
+dist/
+*.spec
+
+# ── IDE
+.vscode/
+.idea/
+*.suo
+*.user
+
+# ── Windows
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# ── macOS
+.DS_Store
+.AppleDouble
+
+# ── Pytest / coverage
+.pytest_cache/
+htmlcov/
+.coverage
+coverage.xml
