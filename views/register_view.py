@@ -1,6 +1,7 @@
 import customtkinter as ctk
 from config.settings import *
 from dao.user_dao import UserDAO
+import re
 
 class RegisterView(ctk.CTkFrame):
     def __init__(self, parent, app):
@@ -27,7 +28,7 @@ class RegisterView(ctk.CTkFrame):
         ctk.CTkLabel(center, text=APP_NAME,
                      font=("Segoe UI", 22, "bold"),
                      text_color=PRIMARY_COLOR).pack()
-        ctk.CTkLabel(center, text="MANAGEMENT PORTAL",
+        ctk.CTkLabel(center, text="HỆ THỐNG QUẢN TRỊ",
                      font=("Segoe UI", 11),
                      text_color=TEXT_SECONDARY).pack(pady=(0,20))
 
@@ -113,7 +114,7 @@ class RegisterView(ctk.CTkFrame):
                       fg_color=PRIMARY_COLOR,
                       hover_color=PRIMARY_HOVER,
                       height=44, corner_radius=8,
-                      command=self._register).pack(fill="x")
+                      command=self._do_register).pack(fill="x")
 
         ctk.CTkFrame(inner, height=1,
                      fg_color=BG_SECONDARY).pack(fill="x", pady=14)
@@ -131,15 +132,22 @@ class RegisterView(ctk.CTkFrame):
 
     def _select_role(self, selected: str):
         self.role_var.set(selected)
-        roles = ["barista", "server", "kitchen", "manager"]
-        for r in roles:
-            btn = getattr(self, f"role_btn_{r}")
-            if r == selected:
+        role_buttons = {
+            "barista": self.role_btn_barista,
+            "server": self.role_btn_server,
+            "kitchen": self.role_btn_kitchen,
+            "manager": self.role_btn_manager
+        }
+        for role, btn in role_buttons.items():
+            if role == selected:
                 btn.configure(fg_color=PRIMARY_COLOR, text_color="white")
             else:
                 btn.configure(fg_color=BG_SECONDARY, text_color=TEXT_PRIMARY)
-
-    def _register(self):
+                
+    def is_valid_gmail(email: str) -> bool:
+        pattern = r"^[\w\.-]+@gmail\.com$"
+        return bool(re.match(pattern, email.lower()))            
+    def _do_register(self):
         name  = self.name_var.get().strip()
         email = self.email_var.get().strip()
         role  = self.role_var.get()
@@ -158,8 +166,12 @@ class RegisterView(ctk.CTkFrame):
         if UserDAO.get_by_email(email):
             self.error_var.set("Email này đã được sử dụng!")
             return
-
+        if not email.lower().endswith("@gmail.com"):
+            self.error_var.set("Vui lòng nhập Email đúng định dạng!")
+            return
+        if not self.is_valid_gmail(email):
+            self.error_var.set("Email Gmail không hợp lệ!")
+            return
         UserDAO.create(name, email, pw, role)
         self.error_var.set("")
-        # Đăng ký xong → về Login
         self.app.show_login()

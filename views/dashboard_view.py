@@ -11,7 +11,12 @@ class DashboardView(ctk.CTkFrame):
         self.user = app.current_user
         self.pack(fill="both", expand=True)
         self._build()
-
+    def _go_to_pos(self):
+        parent = self.master
+        while parent and not hasattr(parent, 'show_view'):
+            parent = parent.master
+        if parent:
+            parent.show_view("pos")
     def _build(self):
         # ── Header
         header = ctk.CTkFrame(self, fg_color="white", height=64,
@@ -48,7 +53,8 @@ class DashboardView(ctk.CTkFrame):
                       font=("Segoe UI", 12, "bold"),
                       fg_color=PRIMARY_COLOR,
                       hover_color=PRIMARY_HOVER,
-                      height=36, corner_radius=8).pack(side="left")
+                      height=36, corner_radius=8,
+                       command=self._go_to_pos).pack(side="left")
 
         # ── Scrollable content
         scroll = ctk.CTkScrollableFrame(self, fg_color=BG_PRIMARY)
@@ -171,14 +177,29 @@ class DashboardView(ctk.CTkFrame):
                      font=FONT_SMALL,
                      text_color="#9FE1CB").pack(anchor="w")
         ctk.CTkButton(inner, text="Xem chi tiết Menu →",
-                      font=("Segoe UI", 11),
-                      fg_color="transparent",
-                      border_width=1,
-                      border_color="#9FE1CB",
-                      text_color="#9FE1CB",
-                      hover_color="#1a3d35",
-                      height=32, corner_radius=8).pack(anchor="w", pady=(12, 0))
-
+                  font=("Segoe UI", 11),
+                  fg_color="transparent",
+                  border_width=1,
+                  border_color="#9FE1CB",
+                  text_color="#9FE1CB",
+                  hover_color="#1a3d35",
+                  height=32, corner_radius=8,
+                  command=self._go_to_menu
+                  ).pack(anchor="w", pady=(12, 0))
+    def _go_to_menu(self):
+        # Tìm ngược lên widget cha cho đến khi gặp MainWindow
+        parent = self.master
+        while parent and not hasattr(parent, 'show_view'):
+            parent = parent.master
+        if parent:
+            parent.show_view("menu")
+    def _go_to_orders(self):
+        """Chuyển sang trang Orders."""
+        parent = self.master
+        while parent and not hasattr(parent, 'show_view'):
+            parent = parent.master
+        if parent:
+            parent.show_view("orders")
     def _build_recent_orders(self, parent):
         """Danh sách đơn hàng gần đây."""
         card = ctk.CTkFrame(parent, fg_color="white", corner_radius=12,
@@ -194,8 +215,8 @@ class DashboardView(ctk.CTkFrame):
         ctk.CTkButton(h, text="Xem tất cả →",
                       font=FONT_SMALL,
                       text_color=PRIMARY_COLOR,
-                      fg_color="transparent", hover=False).pack(side="right")
-
+                      fg_color="transparent", hover=False,
+                      command=self._go_to_orders).pack(side="right")
         # Dữ liệu
         orders = OrderDAO.get_recent(6)
 
@@ -321,3 +342,4 @@ class DashboardView(ctk.CTkFrame):
                          font=FONT_SMALL,
                          text_color=SUCCESS_COLOR).pack(padx=16, pady=8)
         ctk.CTkFrame(right, height=12, fg_color="white").pack()
+ 

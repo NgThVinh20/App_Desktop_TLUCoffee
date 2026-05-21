@@ -84,57 +84,77 @@ class MainWindow(ctk.CTkFrame):
             self.nav_buttons[key] = btn
 
         # ── Spacer
-        ctk.CTkFrame(self.sidebar, fg_color="transparent").pack(
-            fill="both", expand=True)
+        # ── Spacer đẩy user info xuống dưới
+        ctk.CTkFrame(
+            self.sidebar, fg_color="transparent"
+        ).pack(fill="both", expand=True)
 
-        # ── User info + Logout ở dưới cùng
-        ctk.CTkFrame(self.sidebar, fg_color="#2d5a4f",
-                     height=1).pack(fill="x", padx=16, pady=8)
+        # ── Divider trước user info
+        ctk.CTkFrame(
+            self.sidebar, fg_color="#2d5a4f", height=1
+        ).pack(fill="x", padx=16, pady=(0, 8))
 
+        # ── User info
         user_frame = ctk.CTkFrame(self.sidebar, fg_color="transparent")
-        user_frame.pack(fill="x", padx=12, pady=(0, 8))
+        user_frame.pack(fill="x", padx=14, pady=(0, 4))
 
-        # Avatar chữ cái
-        initials = "".join([n[0].upper()
-                             for n in self.user['full_name'].split()[:2]])
-        avatar = ctk.CTkFrame(user_frame, fg_color="#2d5a4f",
-                               width=36, height=36, corner_radius=18)
+        # Avatar
+        initials = "".join([
+            n[0].upper()
+            for n in self.user['full_name'].split()[:2]
+        ])
+        avatar = ctk.CTkFrame(
+            user_frame, fg_color="#2d5a4f",
+            width=38, height=38, corner_radius=19)
         avatar.pack(side="left")
         avatar.pack_propagate(False)
-        ctk.CTkLabel(avatar, text=initials,
-                     font=("Segoe UI", 12, "bold"),
-                     text_color="white").place(relx=.5, rely=.5,
-                                                anchor="center")
+        ctk.CTkLabel(
+            avatar, text=initials,
+            font=("Segoe UI", 13, "bold"),
+            text_color="white"
+        ).place(relx=.5, rely=.5, anchor="center")
 
+        # Tên và vai trò
         info = ctk.CTkFrame(user_frame, fg_color="transparent")
-        info.pack(side="left", padx=8, fill="x", expand=True)
-        name = self.user['full_name']
-        # Rút gọn tên nếu quá dài
-        display_name = name if len(name) <= 14 else name[:14] + "..."
-        ctk.CTkLabel(info, text=display_name,
-                     font=("Segoe UI", 11, "bold"),
-                     text_color="white").pack(anchor="w")
-        role_map = {"admin":"Admin","manager":"Quản lý",
-                    "cashier":"Thu ngân","barista":"Barista",
-                    "server":"Phục vụ","kitchen":"Bếp"}
-        ctk.CTkLabel(info,
-                     text=role_map.get(self.user['role'], self.user['role']),
-                     font=("Segoe UI", 10),
-                     text_color="#9FE1CB").pack(anchor="w")
+        info.pack(side="left", padx=10, fill="x", expand=True)
 
-        # Logout
-        ctk.CTkButton(self.sidebar, text="⎋  Đăng xuất",
-                      font=("Segoe UI", 11),
-                      fg_color="transparent",
-                      text_color="#9FE1CB",
-                      hover_color="#2d5a4f",
-                      anchor="w",
-                      height=32,
-                      command=self.app.logout).pack(
-                          fill="x", padx=10, pady=(0, 12))
+        ten = self.user['full_name']
+        ten_hien_thi = ten if len(ten) <= 14 else ten[:14] + "..."
+        ctk.CTkLabel(
+            info, text=ten_hien_thi,
+            font=("Segoe UI", 11, "bold"),
+            text_color="white"
+        ).pack(anchor="w")
+
+        role_map = {
+            "admin":   "Admin",
+            "manager": "Quản lý",
+            "cashier": "Thu ngân",
+            "barista": "Barista",
+            "server":  "Phục vụ",
+            "kitchen": "Bếp"
+        }
+        ctk.CTkLabel(
+            info,
+            text=role_map.get(self.user['role'], self.user['role']),
+            font=("Segoe UI", 10),
+            text_color="#9FE1CB"
+        ).pack(anchor="w")
+
+        # ── Nút đăng xuất
+        ctk.CTkButton(
+            self.sidebar,
+            text="⎋  Đăng xuất",
+            font=("Segoe UI", 11),
+            fg_color="transparent",
+            text_color="#9FE1CB",
+            hover_color="#2d5a4f",
+            anchor="w",
+            height=36,
+            command=self.app.logout
+        ).pack(fill="x", padx=10, pady=(4, 12))
 
     def _set_active_nav(self, key: str):
-        """Highlight nút nav đang active."""
         for k, btn in self.nav_buttons.items():
             if k == key:
                 btn.configure(fg_color="#2d5a4f", text_color="white",
@@ -144,7 +164,6 @@ class MainWindow(ctk.CTkFrame):
                               font=("Segoe UI", 13))
 
     def clear_content(self):
-        """Xóa nội dung content area."""
         for widget in self.content.winfo_children():
             widget.destroy()
 
@@ -167,16 +186,19 @@ class MainWindow(ctk.CTkFrame):
             MenuView(self.content, self.app)
 
         elif key == "orders":
-            self._placeholder("⊡", "Lịch sử đơn hàng", "Sắp ra mắt...")
+            from views.orders_view import OrdersView
+            OrdersView(self.content, self.app)
 
         elif key == "staff":
-            self._placeholder("⊛", "Quản lý nhân viên", "Sắp ra mắt...")
+            from views.staff_view import StaffView
+            StaffView(self.content, self.app)
 
         elif key == "inventory":
             self._placeholder("⊠", "Kho nguyên liệu", "Sắp ra mắt...")
 
         elif key == "settings":
-            self._placeholder("⚙", "Cài đặt hệ thống", "Sắp ra mắt...")
+            from views.settings_view import SettingsView
+            SettingsView(self.content, self.app)
 
     def _placeholder(self, icon, title, subtitle):
         """Màn hình placeholder cho các view chưa làm."""
@@ -191,3 +213,5 @@ class MainWindow(ctk.CTkFrame):
         ctk.CTkLabel(frame, text=subtitle,
                      font=FONT_NORMAL,
                      text_color=TEXT_SECONDARY).pack(pady=4)
+    def go_to_menu(self):
+        self.show_view("menu")

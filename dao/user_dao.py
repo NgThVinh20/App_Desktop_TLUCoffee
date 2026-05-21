@@ -7,21 +7,21 @@ class UserDAO:
 
     @staticmethod
     def get_by_email(email: str) -> Optional[dict]:
-        """Lấy user theo email — dùng khi đăng nhập."""
         rows = Database.execute_query(
             "SELECT * FROM users WHERE email = %s AND is_active = 1",
             (email,), fetch=True
         )
-        return rows[0] if rows else None
+        if rows:
+            return rows[0]
+        else:
+            return None
 
     @staticmethod
     def verify_password(plain: str, hashed: str) -> bool:
-        """Kiểm tra mật khẩu bcrypt."""
         return bcrypt.checkpw(plain.encode(), hashed.encode())
 
     @staticmethod
     def get_all() -> List[dict]:
-        """Lấy toàn bộ nhân viên."""
         return Database.execute_query(
             """SELECT u.*, 
                       CASE u.role
@@ -36,18 +36,18 @@ class UserDAO:
                ORDER BY u.full_name""",
             fetch=True
         )
-
     @staticmethod
     def get_by_id(user_id: int) -> Optional[dict]:
         rows = Database.execute_query(
             "SELECT * FROM users WHERE id = %s", (user_id,), fetch=True
         )
-        return rows[0] if rows else None
+        if rows:
+            return rows[0]
+        else:
+            return None
 
     @staticmethod
-    def create(full_name: str, email: str, password: str,
-               role: str, phone: str = None) -> int:
-        """Tạo tài khoản mới, hash bcrypt tự động."""
+    def create(full_name: str, email: str, password: str,role: str, phone: str = None) -> int:
         hashed = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
         return Database.execute_query(
             """INSERT INTO users (full_name, email, password_hash, role, phone)
@@ -56,8 +56,7 @@ class UserDAO:
         )
 
     @staticmethod
-    def update(user_id: int, full_name: str, role: str,
-               phone: str = None, is_active: int = 1) -> None:
+    def update(user_id: int, full_name: str, role: str, phone: str = None, is_active: int = 1) -> None:
         Database.execute_query(
             """UPDATE users SET full_name=%s, role=%s, phone=%s, is_active=%s
                WHERE id=%s""",

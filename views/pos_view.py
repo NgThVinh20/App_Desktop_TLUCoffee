@@ -10,18 +10,16 @@ class POSView(ctk.CTkFrame):
         super().__init__(parent, fg_color=BG_PRIMARY)
         self.app      = app
         self.user     = app.current_user
-        self.cart     = []          # [{item, quantity, variant, subtotal}]
+        self.cart     = []        
         self.all_items = []
         self.selected_category = None
         self.pack(fill="both", expand=True)
         self._build()
         self._load_menu()
 
-    # ════════════════════════════════════════
-    #  BUILD UI
-    # ════════════════════════════════════════
+
     def _build(self):
-        # ── Header
+        #Header
         header = ctk.CTkFrame(self, fg_color="white", height=52, corner_radius=0)
         header.pack(fill="x")
         header.pack_propagate(False)
@@ -46,11 +44,11 @@ class POSView(ctk.CTkFrame):
                      width=220, height=34,
                      corner_radius=8).pack(side="right", pady=9)
 
-        # ── Body: Menu trái + Cart phải
+        #  Body
         body = ctk.CTkFrame(self, fg_color=BG_PRIMARY)
         body.pack(fill="both", expand=True)
 
-        # Cột trái — Menu
+        # Cột trái menu
         left = ctk.CTkFrame(body, fg_color=BG_PRIMARY)
         left.pack(side="left", fill="both", expand=True, padx=(12,6), pady=12)
 
@@ -72,7 +70,6 @@ class POSView(ctk.CTkFrame):
         self._build_cart(right)
 
     def _build_cart(self, parent):
-        """Khu vực giỏ hàng bên phải."""
         # Header cart
         h = ctk.CTkFrame(parent, fg_color="white")
         h.pack(fill="x", padx=16, pady=(16,8))
@@ -179,15 +176,13 @@ class POSView(ctk.CTkFrame):
             command=self._checkout)
         self.pay_btn.pack(fill="x", padx=16, pady=(0,16))
 
-    # ════════════════════════════════════════
-    #  LOAD & FILTER MENU
-    # ════════════════════════════════════════
+    #  load, filter
     def _load_menu(self):
         """Load danh mục và món từ DB."""
         cats = MenuDAO.get_categories()
         self.all_items = MenuDAO.get_available()
 
-        # Nút "Tất cả"
+        # btn tất cả
         all_cats = [{"id": None, "name": "Tất cả"}] + cats
         for cat in all_cats:
             is_all = cat['id'] is None
@@ -237,7 +232,6 @@ class POSView(ctk.CTkFrame):
             col = idx % COLS
             self._item_card(self.menu_scroll, item, row, col)
 
-        # Đảm bảo cột giãn đều
         for c in range(COLS):
             self.menu_scroll.grid_columnconfigure(c, weight=1)
 
@@ -249,13 +243,13 @@ class POSView(ctk.CTkFrame):
                              cursor="hand2")
         card.grid(row=row, column=col, padx=5, pady=5, sticky="nsew")
 
-        # Ảnh món (hoặc placeholder)
+        # Ảnh món 
         img_frame = ctk.CTkFrame(card, fg_color=BG_SECONDARY,
                                   height=100, corner_radius=8)
         img_frame.pack(fill="x", padx=8, pady=(8,0))
         img_frame.pack_propagate(False)
 
-        # Badge giá
+        #  giá
         price_badge = ctk.CTkLabel(
             img_frame,
             text=f"{int(item['base_price']):,}đ",
@@ -265,7 +259,7 @@ class POSView(ctk.CTkFrame):
             corner_radius=6, padx=5, pady=2)
         price_badge.place(relx=1, x=-6, y=6, anchor="ne")
 
-        # Load ảnh nếu có
+        # Load ảnh 
         if item.get('image_path') and os.path.exists(item['image_path']):
             try:
                 img = Image.open(item['image_path']).resize((140, 100))
@@ -291,9 +285,12 @@ class POSView(ctk.CTkFrame):
                      text_color=TEXT_SECONDARY,
                      wraplength=130).pack(padx=8, pady=(2,8))
 
-        # Click để thêm vào cart
-        for w in [card, img_frame]:
-            w.bind("<Button-1>", lambda e, i=item: self._add_to_cart(i))
+        # giỏ hàng
+        def bind_click(widget):
+            widget.bind("<Button-1>", lambda e, i=item: self._add_to_cart(i))
+            for child in widget.winfo_children():
+                bind_click(child)  
+        bind_click(card)
 
     def _placeholder_img(self, parent, item):
         """Ảnh placeholder khi không có ảnh."""
@@ -304,22 +301,21 @@ class POSView(ctk.CTkFrame):
                      font=("Segoe UI", 36),
                      text_color=TEXT_SECONDARY).pack(expand=True)
 
-    # ════════════════════════════════════════
-    #  CART LOGIC
-    # ════════════════════════════════════════
+    # giỏ hàng
     def _add_to_cart(self, item: dict):
-        """Thêm món vào giỏ hoặc tăng số lượng."""
+        gia = float(item['base_price'])
+
         for entry in self.cart:
             if entry['item']['id'] == item['id']:
                 entry['quantity'] += 1
-                entry['subtotal']  = entry['quantity'] * item['base_price']
+                entry['subtotal']  = float(entry['quantity'] * gia)
                 self._refresh_cart()
                 return
 
         self.cart.append({
             'item':     item,
             'quantity': 1,
-            'subtotal': float(item['base_price'])
+            'subtotal': gia
         })
         self._refresh_cart()
 
@@ -334,8 +330,7 @@ class POSView(ctk.CTkFrame):
                 if entry['quantity'] <= 0:
                     self.cart.remove(entry)
                 else:
-                    entry['subtotal'] = (entry['quantity']
-                                         * entry['item']['base_price'])
+                    entry['subtotal'] = float(entry['quantity'] * float(entry['item']['base_price']))
                 break
         self._refresh_cart()
 
@@ -398,7 +393,7 @@ class POSView(ctk.CTkFrame):
                           command=lambda i=item['id']: self._change_qty(i,1)
                           ).pack(side="left")
 
-            # Subtotal + nút xóa
+            #  nút xóa
             right_col = ctk.CTkFrame(row, fg_color="white")
             right_col.pack(side="right", padx=(8,0))
 
@@ -414,7 +409,6 @@ class POSView(ctk.CTkFrame):
                           command=lambda i=item['id']: self._remove_from_cart(i)
                           ).pack()
 
-            # Divider
             ctk.CTkFrame(self.cart_scroll,
                          fg_color="#f3f4f6", height=1).pack(
                              fill="x", padx=4)
@@ -423,10 +417,8 @@ class POSView(ctk.CTkFrame):
         self._update_totals(subtotal)
 
     def _update_totals(self, subtotal: float):
-        tax      = subtotal * 0.00   # Bỏ thuế nếu không cần
-        total    = subtotal + tax
+        total    = subtotal
         self.subtotal_label.configure(text=f"{int(subtotal):,}đ")
-        self.tax_label.configure(text=f"{int(tax):,}đ")
         self.discount_label.configure(text="0đ")
         self.total_label.configure(text=f"{int(total):,}đ")
 
@@ -438,9 +430,8 @@ class POSView(ctk.CTkFrame):
             else:
                 btn.configure(fg_color=BG_SECONDARY, text_color=TEXT_PRIMARY)
 
-    # ════════════════════════════════════════
-    #  CHECKOUT
-    # ════════════════════════════════════════
+  
+    #  xác nhận
     def _checkout(self):
         if not self.cart:
             self._show_toast("Giỏ hàng trống!", error=True)

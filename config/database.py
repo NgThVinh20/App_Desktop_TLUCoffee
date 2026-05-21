@@ -27,7 +27,7 @@ class Database:
 
     @classmethod
     def execute_query(cls, query, params=None, fetch=False):
-        """Chạy một câu SQL. fetch=True nếu muốn lấy kết quả."""
+        """ fetch=True nếu muốn lấy kết quả."""
         conn = cls.get_connection()
         cursor = conn.cursor(dictionary=True)  
         try:
@@ -37,7 +37,7 @@ class Database:
                 return result
             else:
                 conn.commit()
-                return cursor.lastrowid  # Trả về ID vừa INSERT
+                return cursor.lastrowid  # Trả về id vừa insert
         except Error as e:
             conn.rollback()
             print(f"Lỗi SQL: {e}")

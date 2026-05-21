@@ -2,14 +2,14 @@ from config.database import Database
 from typing import List
 
 class InventoryDAO:
-
+    # lấy nguyên liệu
     @staticmethod
     def get_all() -> List[dict]:
         return Database.execute_query(
             "SELECT * FROM inventory ORDER BY name",
             fetch=True
         )
-
+    # nguyên liệu sắp hết
     @staticmethod
     def get_low_stock() -> List[dict]:
         """Nguyên liệu dưới ngưỡng cảnh báo."""
@@ -19,14 +19,14 @@ class InventoryDAO:
                ORDER BY quantity ASC""",
             fetch=True
         )
-
+    # cập nhật nguyên liệu
     @staticmethod
     def update_quantity(item_id: int, quantity: float) -> None:
         Database.execute_query(
             "UPDATE inventory SET quantity=%s WHERE id=%s",
             (quantity, item_id)
         )
-
+    #thêm nguyên liệu
     @staticmethod
     def create(item_code: str, name: str, unit: str,
                quantity: float, min_quantity: float) -> int:
