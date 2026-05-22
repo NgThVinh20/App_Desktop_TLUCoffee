@@ -324,9 +324,6 @@ class OrdersView(ctk.CTkFrame):
             ("🕐 Thời gian",  time_str),
             ("👤 Nhân viên",  order.get('staff_name', '—')),
             ("💳 Thanh toán", pay_map.get(order['payment_method'], '—')),
-            ("🪑 Số bàn",
-             str(order['table_number'])
-             if order.get('table_number') else "Mang về"),
             ("📝 Ghi chú",   order.get('note') or "Không có"),
         ]
 

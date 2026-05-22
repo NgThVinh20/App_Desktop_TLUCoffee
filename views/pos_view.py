@@ -2,7 +2,7 @@ import customtkinter as ctk
 from config.settings import *
 from dao.menu_dao import MenuDAO
 from dao.order_dao import OrderDAO
-from PIL import Image, ImageTk
+from PIL import Image
 import os
 
 class POSView(ctk.CTkFrame):
@@ -30,11 +30,6 @@ class POSView(ctk.CTkFrame):
         ctk.CTkLabel(h, text="POS - Bán hàng nhanh",
                      font=("Segoe UI", 14, "bold"),
                      text_color=TEXT_PRIMARY).pack(side="left", pady=12)
-
-        self.order_id_label = ctk.CTkLabel(
-            h, text="Order ID: #TLU-mới",
-            font=FONT_SMALL, text_color=TEXT_SECONDARY)
-        self.order_id_label.pack(side="left", padx=20)
 
         # Thanh tìm kiếm
         self.search_var = ctk.StringVar()
@@ -262,10 +257,10 @@ class POSView(ctk.CTkFrame):
         # Load ảnh 
         if item.get('image_path') and os.path.exists(item['image_path']):
             try:
-                img = Image.open(item['image_path']).resize((140, 100))
-                photo = ImageTk.PhotoImage(img)
-                img_lbl = ctk.CTkLabel(img_frame, image=photo, text="")
-                img_lbl.image = photo
+                img     = Image.open(item['image_path']).resize((140, 100))
+                ctk_img = ctk.CTkImage(light_image=img, size=(140, 100))
+                img_lbl = ctk.CTkLabel(img_frame, image=ctk_img, text="")
+                img_lbl.image = ctk_img
                 img_lbl.pack(fill="both", expand=True)
             except:
                 self._placeholder_img(img_frame, item)
@@ -279,7 +274,7 @@ class POSView(ctk.CTkFrame):
                      wraplength=130).pack(padx=8, pady=(6,0))
 
         # Mô tả
-        desc = (item.get('description') or "")[:30]
+        desc = (item.get('description') or "")
         ctk.CTkLabel(card, text=desc,
                      font=("Segoe UI", 9),
                      text_color=TEXT_SECONDARY,

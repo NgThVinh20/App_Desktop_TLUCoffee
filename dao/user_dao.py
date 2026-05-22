@@ -1,6 +1,5 @@
 import bcrypt
 from config.database import Database
-from models.user import User
 from typing import Optional, List
 
 class UserDAO:
@@ -11,10 +10,7 @@ class UserDAO:
             "SELECT * FROM users WHERE email = %s AND is_active = 1",
             (email,), fetch=True
         )
-        if rows:
-            return rows[0]
-        else:
-            return None
+        return rows[0] if rows else None
 
     @staticmethod
     def verify_password(plain: str, hashed: str) -> bool:
@@ -23,7 +19,7 @@ class UserDAO:
     @staticmethod
     def get_all() -> List[dict]:
         return Database.execute_query(
-            """SELECT u.*, 
+            """SELECT u.*,
                       CASE u.role
                           WHEN 'admin'   THEN 'Admin'
                           WHEN 'manager' THEN 'Quản lý'
@@ -36,18 +32,17 @@ class UserDAO:
                ORDER BY u.full_name""",
             fetch=True
         )
+
     @staticmethod
     def get_by_id(user_id: int) -> Optional[dict]:
         rows = Database.execute_query(
             "SELECT * FROM users WHERE id = %s", (user_id,), fetch=True
         )
-        if rows:
-            return rows[0]
-        else:
-            return None
+        return rows[0] if rows else None
 
     @staticmethod
-    def create(full_name: str, email: str, password: str,role: str, phone: str = None) -> int:
+    def create(full_name: str, email: str, password: str,
+               role: str, phone: str = None) -> int:
         hashed = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
         return Database.execute_query(
             """INSERT INTO users (full_name, email, password_hash, role, phone)
@@ -56,7 +51,8 @@ class UserDAO:
         )
 
     @staticmethod
-    def update(user_id: int, full_name: str, role: str, phone: str = None, is_active: int = 1) -> None:
+    def update(user_id: int, full_name: str, role: str,
+               phone: str = None, is_active: int = 1) -> None:
         Database.execute_query(
             """UPDATE users SET full_name=%s, role=%s, phone=%s, is_active=%s
                WHERE id=%s""",

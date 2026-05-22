@@ -130,18 +130,9 @@ CREATE TABLE IF NOT EXISTS attendance (
 );
 
 
--- BẢNG 9: inventory — Tồn kho nguyên liệu
 
-CREATE TABLE IF NOT EXISTS inventory (
-    id              INT AUTO_INCREMENT PRIMARY KEY,
-    item_code       VARCHAR(20)   NOT NULL UNIQUE,  -- CF-001, MM-002
-    name            VARCHAR(150)  NOT NULL,
-    unit            VARCHAR(20)   NOT NULL,  -- Kg, Lít, Bịch, Chai
-    quantity        DECIMAL(10,2) NOT NULL DEFAULT 0,
-    min_quantity    DECIMAL(10,2) NOT NULL DEFAULT 0,  -- Ngưỡng cảnh báo
-    updated_at      DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP
-                    ON UPDATE CURRENT_TIMESTAMP
-);
+
+
 
 
 -- INDEX để tăng tốc truy vấn thường dùng

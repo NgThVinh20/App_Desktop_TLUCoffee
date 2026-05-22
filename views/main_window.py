@@ -2,6 +2,7 @@ import customtkinter as ctk
 from config.settings import *
 from datetime import datetime
 
+
 class MainWindow(ctk.CTkFrame):
     def __init__(self, parent, app):
         super().__init__(parent, fg_color=BG_PRIMARY)
@@ -10,11 +11,9 @@ class MainWindow(ctk.CTkFrame):
         self.pack(fill="both", expand=True)
         self.current_view = None
         self._build()
-        # Mặc định mở Dashboard
         self.show_view("dashboard")
 
     def _build(self):
-        # ── Chia layout: Sidebar trái + Content phải
         self.sidebar = ctk.CTkFrame(self, fg_color=PRIMARY_COLOR,
                                      width=220, corner_radius=0)
         self.sidebar.pack(side="left", fill="y")
@@ -27,7 +26,7 @@ class MainWindow(ctk.CTkFrame):
         self._build_sidebar()
 
     def _build_sidebar(self):
-        # ── Logo khu vực
+        # ── Logo
         logo_area = ctk.CTkFrame(self.sidebar, fg_color="transparent")
         logo_area.pack(fill="x", padx=16, pady=(20, 8))
 
@@ -52,17 +51,20 @@ class MainWindow(ctk.CTkFrame):
         ctk.CTkFrame(self.sidebar, fg_color="#2d5a4f",
                      height=1).pack(fill="x", padx=16, pady=10)
 
-        # ── Menu items
+        # ── Menu items — đã thay "Kho hàng" bằng "Ca làm việc"
         self.nav_buttons = {}
         menu_items = [
-            ("dashboard",  "⊞",  "Dashboard"),
-            ("pos",        "⊟",  "Bán hàng"),
-            ("menu",       "☰",  "Menu"),
-            ("orders",     "⊡",  "Orders"),
-            ("staff",      "⊛",  "Staff"),
-            ("inventory",  "⊠",  "Kho hàng"),
-            ("settings",   "⚙",  "Settings"),
+            ("dashboard", "⊞", "Dashboard"),
+            ("pos",       "⊟", "Bán hàng"),
+            ("menu",      "☰", "Menu"),
+            ("orders",    "⊡", "Orders"),
         ]
+
+        # Chỉ admin và manager mới thấy Staff, Ca làm việc, Settings
+        if self.user['role'] in ('admin', 'manager'):
+            menu_items.append(("staff",    "⊛", "Staff"))
+            menu_items.append(("shift",    "📅", "Ca làm việc"))
+            menu_items.append(("settings", "⚙", "Settings"))
 
         nav_frame = ctk.CTkFrame(self.sidebar, fg_color="transparent")
         nav_frame.pack(fill="x", padx=10)
@@ -84,47 +86,38 @@ class MainWindow(ctk.CTkFrame):
             self.nav_buttons[key] = btn
 
         # ── Spacer
-        # ── Spacer đẩy user info xuống dưới
-        ctk.CTkFrame(
-            self.sidebar, fg_color="transparent"
-        ).pack(fill="both", expand=True)
+        ctk.CTkFrame(self.sidebar, fg_color="transparent").pack(
+            fill="both", expand=True)
 
         # ── Divider trước user info
-        ctk.CTkFrame(
-            self.sidebar, fg_color="#2d5a4f", height=1
-        ).pack(fill="x", padx=16, pady=(0, 8))
+        ctk.CTkFrame(self.sidebar, fg_color="#2d5a4f",
+                     height=1).pack(fill="x", padx=16, pady=(0, 8))
 
         # ── User info
         user_frame = ctk.CTkFrame(self.sidebar, fg_color="transparent")
         user_frame.pack(fill="x", padx=14, pady=(0, 4))
 
-        # Avatar
         initials = "".join([
             n[0].upper()
             for n in self.user['full_name'].split()[:2]
         ])
-        avatar = ctk.CTkFrame(
-            user_frame, fg_color="#2d5a4f",
-            width=38, height=38, corner_radius=19)
+        avatar = ctk.CTkFrame(user_frame, fg_color="#2d5a4f",
+                               width=38, height=38, corner_radius=19)
         avatar.pack(side="left")
         avatar.pack_propagate(False)
-        ctk.CTkLabel(
-            avatar, text=initials,
-            font=("Segoe UI", 13, "bold"),
-            text_color="white"
-        ).place(relx=.5, rely=.5, anchor="center")
+        ctk.CTkLabel(avatar, text=initials,
+                     font=("Segoe UI", 13, "bold"),
+                     text_color="white").place(relx=.5, rely=.5,
+                                               anchor="center")
 
-        # Tên và vai trò
         info = ctk.CTkFrame(user_frame, fg_color="transparent")
         info.pack(side="left", padx=10, fill="x", expand=True)
 
         ten = self.user['full_name']
         ten_hien_thi = ten if len(ten) <= 14 else ten[:14] + "..."
-        ctk.CTkLabel(
-            info, text=ten_hien_thi,
-            font=("Segoe UI", 11, "bold"),
-            text_color="white"
-        ).pack(anchor="w")
+        ctk.CTkLabel(info, text=ten_hien_thi,
+                     font=("Segoe UI", 11, "bold"),
+                     text_color="white").pack(anchor="w")
 
         role_map = {
             "admin":   "Admin",
@@ -134,25 +127,22 @@ class MainWindow(ctk.CTkFrame):
             "server":  "Phục vụ",
             "kitchen": "Bếp"
         }
-        ctk.CTkLabel(
-            info,
-            text=role_map.get(self.user['role'], self.user['role']),
-            font=("Segoe UI", 10),
-            text_color="#9FE1CB"
-        ).pack(anchor="w")
+        ctk.CTkLabel(info,
+                     text=role_map.get(self.user['role'], self.user['role']),
+                     font=("Segoe UI", 10),
+                     text_color="#9FE1CB").pack(anchor="w")
 
         # ── Nút đăng xuất
-        ctk.CTkButton(
-            self.sidebar,
-            text="⎋  Đăng xuất",
-            font=("Segoe UI", 11),
-            fg_color="transparent",
-            text_color="#9FE1CB",
-            hover_color="#2d5a4f",
-            anchor="w",
-            height=36,
-            command=self.app.logout
-        ).pack(fill="x", padx=10, pady=(4, 12))
+        ctk.CTkButton(self.sidebar,
+                      text="⎋  Đăng xuất",
+                      font=("Segoe UI", 11),
+                      fg_color="transparent",
+                      text_color="#9FE1CB",
+                      hover_color="#2d5a4f",
+                      anchor="w",
+                      height=36,
+                      command=self.app.logout
+                      ).pack(fill="x", padx=10, pady=(4, 12))
 
     def _set_active_nav(self, key: str):
         for k, btn in self.nav_buttons.items():
@@ -168,7 +158,6 @@ class MainWindow(ctk.CTkFrame):
             widget.destroy()
 
     def show_view(self, key: str):
-        """Chuyển màn hình trong content area."""
         self.clear_content()
         self._set_active_nav(key)
         self.current_view = key
@@ -193,25 +182,13 @@ class MainWindow(ctk.CTkFrame):
             from views.staff_view import StaffView
             StaffView(self.content, self.app)
 
-        elif key == "inventory":
-            self._placeholder("⊠", "Kho nguyên liệu", "Sắp ra mắt...")
+        elif key == "shift":                          # ← ĐÃ THAY
+            from views.shift_view import ShiftView
+            ShiftView(self.content, self.app)
 
         elif key == "settings":
             from views.settings_view import SettingsView
             SettingsView(self.content, self.app)
 
-    def _placeholder(self, icon, title, subtitle):
-        """Màn hình placeholder cho các view chưa làm."""
-        frame = ctk.CTkFrame(self.content, fg_color=BG_PRIMARY)
-        frame.pack(fill="both", expand=True)
-        ctk.CTkLabel(frame, text=icon,
-                     font=("Segoe UI", 48),
-                     text_color=TEXT_SECONDARY).pack(expand=True, pady=(120, 8))
-        ctk.CTkLabel(frame, text=title,
-                     font=("Segoe UI", 20, "bold"),
-                     text_color=TEXT_PRIMARY).pack()
-        ctk.CTkLabel(frame, text=subtitle,
-                     font=FONT_NORMAL,
-                     text_color=TEXT_SECONDARY).pack(pady=4)
     def go_to_menu(self):
         self.show_view("menu")
